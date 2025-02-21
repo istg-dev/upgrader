@@ -1,194 +1,208 @@
-# [wavesurfer.js](https://wavesurfer-js.org)
+# MixItUp 3
 
-# Read below how to update to version 2!
+[![Build Status](https://travis-ci.org/patrickkunka/mixitup.svg?branch=v3)](https://travis-ci.org/patrickkunka/mixitup)
+[![Coverage Status](https://coveralls.io/repos/github/patrickkunka/mixitup/badge.svg?branch=v3)](https://coveralls.io/github/patrickkunka/mixitup?branch=v3)
+[![jsDelivr Hits](https://data.jsdelivr.com/v1/package/gh/patrickkunka/mixitup/badge?style=rounded)](https://www.jsdelivr.com/package/gh/patrickkunka/mixitup)
 
-[![npm version](https://img.shields.io/npm/v/wavesurfer.js.svg?style=flat)](https://www.npmjs.com/package/wavesurfer.js)
-![npm](https://img.shields.io/npm/dm/wavesurfer.js.svg) [![Join the chat at https://gitter.im/katspaugh/wavesurfer.js](https://badges.gitter.im/katspaugh/wavesurfer.js.svg)](https://gitter.im/katspaugh/wavesurfer.js?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+MixItUp is a high-performance, dependency-free library for animated DOM manipulation, giving you the power to filter, sort, add and remove DOM elements with beautiful animations.
 
-Interactive navigable audio visualization using Web Audio and Canvas.
+MixItUp plays nice with your existing HTML and CSS, making it a great choice for responsive layouts and compatible with inline-flow, percentages, media queries, flexbox and more.
 
-[![Screenshot](https://raw.githubusercontent.com/katspaugh/wavesurfer.js/gh-pages/example/screenshot.png "Screenshot")](https://wavesurfer-js.org)
+For a live sandbox, full documentation, tutorials and more, please visit [kunkalabs.com/mixitup](https://www.kunkalabs.com/mixitup/).
 
-See a [tutorial](https://wavesurfer-js.org/docs) and [examples](https://wavesurfer-js.org/examples) on [wavesurfer-js.org](https://wavesurfer-js.org).
+Migrating from MixItUp 2? Check out the [MixItUp 3 Migration Guide](./docs/mixitup-3-migration-guide.md).
 
-## Browser support
-wavesurfer.js works only in [modern browsers supporting Web Audio](http://caniuse.com/audio-api).
+#### Licensing
 
-It will fallback to Audio Element in other browsers (without graphics). You can also try [wavesurfer.swf](https://github.com/laurentvd/wavesurfer.swf) which is a Flash-based fallback.
+MixItUp is open source and free to use for non-commercial, educational and non-profit use. For use in commercial projects, **a commercial license is required**. For licensing information and FAQs please see the [MixItUp Licenses](https://www.kunkalabs.com/mixitup/licenses/) page.
 
-## FAQ
-### Can the audio start playing before the waveform is drawn?
-Yes, if you use the `backend: 'MediaElement'` option. See here: https://wavesurfer-js.org/example/audio-element/. The audio will start playing as you press play. A thin line will be displayed until the whole audio file is downloaded and decoded to draw the waveform.
+#### Documentation
 
-### Can drawing be done as file loads?
-No. Web Audio needs the whole file to decode it in the browser. You can however load pre-decoded waveform data to draw the waveform immediately. See here: https://wavesurfer-js.org/example/audio-element/ (the "Pre-recoded Peaks" section).
+- [Factory Function](./docs/mixitup.md)
+- [Configuration Object](./docs/mixitup.Config.md)
+- [Mixer API Methods](./docs/mixitup.Mixer.md)
+- [State Object](./docs/mixitup.State.md)
+- [Mixer Events](./docs/mixitup.Events.md)
 
-## API in examples
+#### Browser Support
 
-Choose a container:
+MixItUp 3 has been tested for compatibility with the following browsers.
+
+- Chrome 16+
+- Firefox 16+
+- Safari 6.2+
+- Yandex 14+
+- Edge 13+
+- IE 10+ (with animations), IE 8-9 (no animations)
+
+## Getting Started
+
+#### Contents
+
+- [Building the Container](#building-the-container)
+- [Building Controls](#building-controls)
+- [Styling the Container](#styling-the-container)
+- [Loading MixItUp](#loading-mixitup)
+- [Creating a Mixer](#creating-a-mixer)
+- [Configuration](#configuration)
+
+Most commonly, MixItUp is applied to a **"container"** of **"target"** elements, which could be a portfolio of projects, a list of blog posts, a selection of products, or any kind of UI where filtering and/or sorting would be advantageous.
+
+To get started, follow these simple steps:
+
+### Building the Container
+
+By default, MixItUp will query the container for targets matching the selector `'.mix'`.
+
 ```html
-<div id="waveform"></div>
+<div class="container">
+    <div class="mix category-a" data-order="1"></div>
+    <div class="mix category-b" data-order="2"></div>
+    <div class="mix category-b category-c" data-order="3"></div>
+    <div class="mix category-a category-d" data-order="4"></div>
+</div>
 ```
-Create an instance, passing the container selector and [options](https://wavesurfer-js.org/docs/options.html):
 
-```javascript
-var wavesurfer = WaveSurfer.create({
-    container: '#waveform',
-    waveColor: 'violet',
-    progressColor: 'purple'
+Targets can be filtered using any valid selector e.g. `'.category-a'`, and are sorted via optional custom data attributes e.g. `'data-order'`.
+
+Further reading: [Marking-up MixItUp Containers](https://www.kunkalabs.com/tutorials/marking-up-mixitup-containers/)
+
+### Building Controls
+
+One way that filtering and sorting happens is when controls are clicked. You may use any clickable element as a control, but `<button type="button">` is recommended for accessibility.
+
+#### Filter Controls
+
+Filter controls are queried based on the presence of a `data-filter` attribute, whose value must be `'all'`, `'none'`, or a valid selector string e.g. `'.category-a'`.
+
+```html
+<button type="button" data-filter="all">All</button>
+<button type="button" data-filter=".category-a">Category A</button>
+<button type="button" data-filter=".category-b">Category B</button>
+<button type="button" data-filter=".category-c">Category C</button>
+```
+
+Further reading: [Filtering with MixItUp](https://www.kunkalabs.com/tutorials/filtering-with-mixitup/)
+
+#### Sort Controls
+
+Sort controls are queried based on the presence of a `data-sort` attribute, whose value takes the form of a "sort string" made up of the name of the attribute to sort by, followed by an optional colon-separated sorting order e.g. `'order'`, `'order:asc'`, `'order:desc'`.
+
+```html
+<button type="button" data-sort="order:asc">Ascending</button>
+<button type="button" data-sort="order:descending">Descending</button>
+<button type="button" data-sort="random">Random</button>
+```
+
+The values `'default'` and `'random'` are also valid, with `'default'` referring to the original order of target elements in the DOM at the time of mixer instantiation.
+
+Further reading: [Sorting with MixItUp](https://www.kunkalabs.com/tutorials/sorting-with-mixitup/)
+
+### Styling the Container
+
+While MixItUp can be added on top of any existing CSS layout, we strongly recommend inline-block or flexbox-based styling over floats and legacy grid frameworks when dealing with grid-based designs for a number of reasons.
+
+Further reading: [MixItUp Grid Layouts](https://www.kunkalabs.com/tutorials/mixitup-grid-layouts/)
+
+### Loading MixItUp
+
+Firstly, load the MixItUp JavaScript library using the preferred method for your project.
+
+#### Script Tag
+
+The most simple way to load MixItUp in your project is to include it via a `<script>` tag before the closing `</body>` tag on your page.
+
+```html
+        ...
+
+        <script src="/path/to/mixitup.min.js"></script>
+    </body>
+</html>
+```
+
+With this technique, the MixItUp factory function will be made available via the global variable `mixitup`.
+
+#### Module Import
+
+If you are building a modular JavaScript project with Webpack, Browserify, or RequireJS, MixItUp can be installed using your package manager of choice (e.g. npm, jspm, yarn) and then imported into any of your project's modules.
+
+`npm install mixitup --save`
+
+```js
+// ES2015
+
+import mixitup from 'mixitup';
+```
+
+```js
+// CommonJS
+
+var mixitup = require('mixitup');
+```
+
+```js
+// AMD
+
+require(['mixitup'], function(mixitup) {
+
 });
 ```
 
-Subscribe to some [events](https://wavesurfer-js.org/docs/events.html):
+### Creating a Mixer
 
-```javascript
-wavesurfer.on('ready', function () {
-    wavesurfer.play();
+With the `mixitup()` factory function available, you may now instantiate a "mixer" on your container to enable MixItUp functionality.
+
+Call the factory function passing a selector string or a reference to your container element as the first parameter, and a the newly instantiated mixer will be returned.
+
+###### Example: Instantiating a mixer with a selector string
+
+```js
+var mixer = mixitup('.container');
+```
+
+###### Example: Instantiating a mixer with an element reference
+
+```js
+var mixer = mixitup(containerEl);
+```
+
+Your mixer is now ready for you to interact with, either via its controls (see above), or its API (see [Mixer API Methods](./docs/mixitup.Mixer.md)). Click a control or call an API method to check that everything is working correctly.
+
+### Configuration
+
+If you wish to customize the functionality of your mixer, an optional "configuration object" can be passed as the second parameter to the `mixitup` function. If no configuration object is passed, the default settings will be used.
+
+Further reading: [Configuration Object](/docs/mixitup.Config.md)
+
+###### Example: Passing a configuration object
+
+```js
+var mixer = mixitup(containerEl, {
+    selectors: {
+        target: '.blog-item'
+    },
+    animation: {
+        duration: 300
+    }
 });
 ```
 
-Load an audio file from a URL:
+#### Using the API
 
-```javascript
-wavesurfer.load('example/media/demo.wav');
+If you wish to interact with your mixer via its API, the mixer reference returned by the factory function can be used to call API methods.
+
+###### Example: Calling an API method
+
+```js
+var mixer = mixitup(containerEl);
+
+mixer.filter('.category-a');
 ```
 
-## Documentation
+Further reading: [Mixer API Methods](./docs/mixitup.Mixer.md)
 
-See the documentation on all available [methods](https://wavesurfer-js.org/docs/methods.html), [options](https://wavesurfer-js.org/docs/options.html) and [events](https://wavesurfer-js.org/docs/events.html) on the [homepage](https://wavesurfer-js.org/docs/).
+#### Building a modern JavaScript application?
 
-**Note on version 2**: The wavesurfer.js core library and the plugins were refactored to be modular so it can be used with a module bundler. (You can still use wavesurfer without, e.g. with `<script>` tags) The code was also updated to ES6/ES7 syntax and is transpiled with babel and webpack. Read below how to update your code.
+You may wish to use MixItUp 3's new "dataset" API. Dataset is designed for use in API-driven JavaScript applications, and can be used instead of DOM-based methods such as `.filter()`, `.sort()`, `.insert()`, etc. When used, insertion, removal, sorting and pagination can be achieved purely via changes to your data model, without the uglyness of having to interact with or query the DOM directly.
 
-## Upgrading to version 2
-
-The API has mostly stayed the same but there are some changes to consider:
-
-1. **MultiCanvas renderer is now the default:** It provides all functionality of the Canvas renderer. – Most likely you can simply remove the renderer option – The Canvas renderer has been removed. (The `renderer` option still exists but wavesurfer expects it to be a renderer object, not merely a string.)
-
-2. **Constructor functions instead of object constructors**
-
-```javascript
-// Old:
-var wavesurfer = Object.create(WaveSurfer);
-Wavesurfer.init(options);
-
-// New:
-var wavesurfer = WaveSurfer.create(options);
-// ... or
-var wavesurfer = new WaveSurfer(options);
-wavesurfer.init();
-```
-
-3. **New plugin API:** Previously all plugins had their own initialisation API. The new API replaces all these different ways to do the same thing with one plugin API built into the core library. Plugins are now added as a property of the wavesurfer configuration object during creation. You don't need to initialise the plugins yourself anymore. Below is an example of initialising wavesurfer with plugins (Note the different ways to import the library at the top):
-
-```javascript
-// EITHER - accessing modules with <script> tags
-var WaveSurfer = window.WaveSurfer;
-var TimelinePlugin = window.WaveSurfer.timeline;
-var MinimapPlugin = window.WaveSurfer.minimap;
-
-// OR - importing as es6 module
-import WaveSurfer from 'wavesurfer.js';
-import TimelinePlugin from 'wavesurfer.js/dist/plugin/wavesurfer.timeline.min.js';
-import MinimapPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.minimap.min.js';
-
-// OR - importing as require.js/commonjs modules
-var WaveSurfer = require('wavesurfer.js');
-var TimelinePlugin = require('wavesurfer.js/dist/plugin/wavesurfer.timeline.min.js');
-var MinimapPlugin = require('wavesurfer.js/dist/plugin/wavesurfer.minimap.min.js');
-
-// ... initialising waveform with plugins
-var wavesurfer = WaveSurfer.create({
-    container: '#waveform',
-    waveColor: 'violet',
-    plugins: [
-        TimelinePlugin.create({
-            container: '#wave-timeline'
-        }),
-        MinimapPlugin.create()
-    ]
-});
-```
-
-**Note:** Read more about the plugin API in the documentation.
-
-## Using with a module bundler
-
-Wavesurfer can be used with a module system like this:
-```javascript
-// import
-import WaveSurfer from 'wavesurfer.js';
-
-// commonjs/requirejs
-var WaveSurfer = require('wavesurfer.js');
-
-// amd
-define(['WaveSurfer'], function(WaveSurfer) {
-  // ... code
-});
-
-```
-
-## Related projects
-
-For a list of  projects using wavesurfer.js, check out
-[the projects page](https://wavesurfer-js.org/projects/).
-
-## Development
-
-[![npm version](https://img.shields.io/npm/v/wavesurfer.js.svg?style=flat)](https://www.npmjs.com/package/wavesurfer.js)
-[![npm](https://img.shields.io/npm/dm/wavesurfer.js.svg)]()
-[![Build Status](https://travis-ci.org/katspaugh/wavesurfer.js.svg?branch=master)](https://travis-ci.org/katspaugh/wavesurfer.js)
-[![Coverage Status](https://coveralls.io/repos/github/katspaugh/wavesurfer.js/badge.svg)](https://coveralls.io/github/katspaugh/wavesurfer.js)
-
-Install development dependencies:
-
-```
-npm install
-```
-Development tasks automatically rebuild certain parts of the library when files are changed (`start` – wavesurfer, `start:plugins` – plugins). Start a dev task and go to `localhost:8080/example/` to test the current build.
-
-Start development server for core library:
-
-```
-npm run start
-```
-
-Start development server for plugins:
-
-```
-npm run start:plugins
-```
-
-Build all the files. (generated files are placed in the `dist` directory.)
-
-```
-npm run build
-```
-
-Running tests only:
-
-```
-npm run test
-```
-
-Build documentation with esdoc (generated files are placed in the `doc` directory.)
-```
-npm run doc
-```
-
-## Editing documentation
-The homepage and documentation files are maintained in the [`gh-pages` branch](https://github.com/katspaugh/wavesurfer.js/tree/gh-pages). Contributions to the documentation are especially welcome.
-
-## Credits
-
-Initial idea by [Alex Khokhulin](https://github.com/xoxulin). Many
-thanks to
-[the awesome contributors](https://github.com/katspaugh/wavesurfer.js/contributors)!
-
-## License
-
-[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
-
-This work is licensed under a
-[BSD 3-Clause License](https://opensource.org/licenses/BSD-3-Clause).
+Further reading: [Using the Dataset API](https://www.kunkalabs.com/tutorials/using-the-dataset-api/)
